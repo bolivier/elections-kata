@@ -145,8 +145,8 @@ class Elections {
         const blankResult = (blankVotes * 100) / nbVotes;
         results.Blank = blankResult;
 
-        const nullResult = (nullVotes * 100) / nbVotes;
-        results.Null = nullResult;
+        const nullResult = nullVotes / nbVotes;
+        results['Null'] = numeral(nullResult).format('0.00%');
 
         const nbElectors = Object.values(this.list)
             .map(x => x.length)
