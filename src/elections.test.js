@@ -32,7 +32,7 @@ test('election without districts', t => {
         Abstention: '11.11%',
     };
 
-    t.deepEqual(results, expectedResults);
+    t.deepEqual(expectedResults, results);
 });
 
 test('election with districts', t => {
@@ -67,5 +67,5 @@ test('election with districts', t => {
         Abstention: '0.00%',
     };
 
-    t.deepEqual(results, expectedResults);
+    t.deepEqual(expectedResults, results);
 });

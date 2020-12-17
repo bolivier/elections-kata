@@ -87,7 +87,7 @@ class Elections {
             }
         } else {
             for (let districtVotes of Object.values(this.votesWithDistricts)) {
-                this.nbVotes += districtVotes.reduce((x, y) => x + y);
+                nbVotes += districtVotes.reduce((x, y) => x + y);
             }
 
             for (let i = 0; i < this.officialCandidates.length; i++) {
@@ -95,11 +95,11 @@ class Elections {
                     this.officialCandidates[i]
                 );
 
-                for (let districtVotes in Object.values(
-                    this.votesWithDistricts
-                )) {
-                    this.nbValidVotes += districtVotes[index];
-                }
+                Object.values(this.votesWithDistricts).forEach(
+                    districtVotes => {
+                        nbValidVotes += districtVotes[index];
+                    }
+                );
             }
 
             const officialCandidatesResult = {};
@@ -107,13 +107,12 @@ class Elections {
             for (let i = 0; i < this.officialCandidates.length; i++) {
                 officialCandidatesResult[this.candidates[i]] = 0;
             }
-            for (let districtVotes in Object.values(this.votesWithDistricts)) {
+            for (let districtVotes of Object.values(this.votesWithDistricts)) {
                 const districtResult = [];
                 for (let i = 0; i < districtVotes.length; i++) {
                     let candidateResult = 0;
                     if (nbValidVotes != 0)
-                        candidateResult =
-                            (districtVotes[i] * 100) / nbValidVotes;
+                        candidateResult = districtVotes[i] / nbValidVotes;
                     const candidate = this.candidates[i];
                     if (this.officialCandidates.includes(candidate)) {
                         districtResult.push(candidateResult);
@@ -134,12 +133,17 @@ class Elections {
                     this.candidates[districtWinnerIndex]
                 ] += 1;
             }
-            for (let i = 0; i < officialCandidatesResult.length; i++) {
+            for (
+                let i = 0;
+                i < Object.values(officialCandidatesResult).length;
+                i++
+            ) {
                 let ratioCandidate =
-                    (this.officialCandidatesResult[this.candidates[i]] /
-                        this.officialCandidatesResult.length) *
-                    100;
-                results[this.candidates[i]] = ratioCandidate;
+                    officialCandidatesResult[this.candidates[i]] /
+                    Object.values(officialCandidatesResult).length;
+                results[this.candidates[i]] = numeral(ratioCandidate).format(
+                    '0.00%'
+                );
             }
         }
 
