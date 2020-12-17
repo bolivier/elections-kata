@@ -142,8 +142,8 @@ class Elections {
             }
         }
 
-        const blankResult = (blankVotes * 100) / nbVotes;
-        results.Blank = blankResult;
+        const blankResult = blankVotes / nbVotes;
+        results.Blank = numeral(blankResult).format('0.00%');
 
         const nullResult = nullVotes / nbVotes;
         results['Null'] = numeral(nullResult).format('0.00%');
