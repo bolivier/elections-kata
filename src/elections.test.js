@@ -24,12 +24,12 @@ test('election without districts', t => {
 
     const results = elections.results();
     const expectedResults = {
-        Jerry: '50,00%',
-        Johnny: '50,00%',
-        Michel: '0,00%',
-        Blank: '25,00%',
-        Null: '25,00%',
-        Abstention: '11,11%',
+        Jerry: '50.00%',
+        Johnny: '50.00%',
+        Michel: '0.00%',
+        Blank: '25.00%',
+        Null: '25.00%',
+        Abstention: '11.11%',
     };
 
     t.deepEqual(results, expectedResults);

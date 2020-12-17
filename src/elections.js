@@ -1,3 +1,5 @@
+const numeral = require('numeral');
+
 class Elections {
     constructor(list, withDistrict) {
         this.candidates = [];
@@ -59,7 +61,9 @@ class Elections {
                 (acc, elm) => acc + elm
             );
             for (let i = 0; i < this.officialCandidates.length; i++) {
-                const index = this.candidates.indexOf(this.officialCandidates[i]);
+                const index = this.candidates.indexOf(
+                    this.officialCandidates[i]
+                );
                 nbValidVotes += this.votesWithoutDistricts[index];
             }
 
@@ -83,9 +87,13 @@ class Elections {
             }
 
             for (let i = 0; i < this.officialCandidates.size(); i++) {
-                const index = this.candidates.indexOf(this.officialCandidates[i]);
+                const index = this.candidates.indexOf(
+                    this.officialCandidates[i]
+                );
 
-                for (let districtVotes in Object.values(this.votesWithDistricts)) {
+                for (let districtVotes in Object.values(
+                    this.votesWithDistricts
+                )) {
                     this.nbValidVotes += districtVotes[index];
                 }
             }
@@ -143,13 +151,13 @@ class Elections {
         const nbElectors = Object.values(this.list)
             .map(x => x.length)
             .reduce((x, y) => x + y);
-        const abstentionResult = 100 - (nbVotes * 100) / nbElectors;
-        results['Abstention'] = abstentionResult;
+        const abstentionResult = 1 - nbVotes / nbElectors;
+        results['Abstention'] = numeral(abstentionResult).format('0.00%');
 
         return results;
     }
 }
 
 module.exports = {
-    Elections
+    Elections,
 };
