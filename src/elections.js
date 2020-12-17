@@ -40,9 +40,11 @@ class Elections {
                     this.districtVotes[index] += 1;
                 } else {
                     this.candidates.push(candidate);
-                    this.votesWithDistricts.forEach(districtVotes => {
-                        districtVotes.push(0);
-                    });
+                    Object.values(this.votesWithDistricts).forEach(
+                        districtVotes => {
+                            districtVotes.push(0);
+                        }
+                    );
                     this.districtVotes[this.candidates.length - 1] += 1;
                 }
             }
@@ -84,11 +86,11 @@ class Elections {
                 }
             }
         } else {
-            for (let districtVotes in Object.values(this.votesWithDistricts)) {
+            for (let districtVotes of Object.values(this.votesWithDistricts)) {
                 this.nbVotes += districtVotes.reduce((x, y) => x + y);
             }
 
-            for (let i = 0; i < this.officialCandidates.size(); i++) {
+            for (let i = 0; i < this.officialCandidates.length; i++) {
                 const index = this.candidates.indexOf(
                     this.officialCandidates[i]
                 );
@@ -112,7 +114,7 @@ class Elections {
                     if (nbValidVotes != 0)
                         candidateResult =
                             (districtVotes[i] * 100) / nbValidVotes;
-                    const candidate = this.candidates.get(i);
+                    const candidate = this.candidates[i];
                     if (this.officialCandidates.includes(candidate)) {
                         districtResult.push(candidateResult);
                     } else {
@@ -125,17 +127,14 @@ class Elections {
                 }
                 let districtWinnerIndex = 0;
                 for (let i = 1; i < districtResult.length; i++) {
-                    if (
-                        districtResult.get(districtWinnerIndex) <
-                        districtResult[i]
-                    )
+                    if (districtResult[districtWinnerIndex] < districtResult[i])
                         districtWinnerIndex = i;
                 }
                 officialCandidatesResult[
-                    this.candidates.get[districtWinnerIndex]
+                    this.candidates[districtWinnerIndex]
                 ] += 1;
             }
-            for (let i = 0; i < officialCandidatesResult.size(); i++) {
+            for (let i = 0; i < officialCandidatesResult.length; i++) {
                 let ratioCandidate =
                     (this.officialCandidatesResult[this.candidates[i]] /
                         this.officialCandidatesResult.length) *
