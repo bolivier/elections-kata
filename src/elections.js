@@ -69,10 +69,12 @@ class Elections {
 
             for (let i = 0; i < this.votesWithoutDistricts.length; i++) {
                 const candidateResult =
-                    (this.votesWithoutDistricts[i] * 100) / nbValidVotes;
+                    this.votesWithoutDistricts[i] / nbValidVotes;
                 const candidate = this.candidates[i];
                 if (this.officialCandidates.includes(candidate)) {
-                    results[candidate] = candidateResult;
+                    results[candidate] = numeral(candidateResult).format(
+                        '0.00%'
+                    );
                 } else {
                     if (this.candidates[i].length === 0) {
                         blankVotes += this.votesWithoutDistricts[i];
