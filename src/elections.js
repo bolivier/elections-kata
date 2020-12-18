@@ -85,7 +85,11 @@ class Elections {
             this.officialCandidates2
         );
         if (!this.withDistrict) {
-            nbVotes = R.sum(this.votesWithoutDistricts);
+            nbVotes = R.pipe(
+                getVotes,
+                R.reject(R.equals(null)),
+                R.length
+            )(this.list);
 
             nbValidVotes = R.pipe(
                 getVotes,
