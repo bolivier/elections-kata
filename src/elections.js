@@ -29,8 +29,7 @@ class Elections {
     results() {
         let results = {};
         let nbVotes = 0;
-        let nullVotes = 0;
-        let blankVotes = 0;
+
         let nbValidVotes = 0;
         const getVotes = R.pipe(
             R.values,
@@ -44,6 +43,20 @@ class Elections {
             {},
             this.officialCandidates2
         );
+
+        const blankVotes = R.pipe(
+            getVotes,
+            R.reject(isOfficialCandidate),
+            R.reject(R.isEmpty),
+            R.reject(R.equals(null)),
+            R.length
+        )(this.list);
+        const nullVotes = R.pipe(
+            getVotes,
+            R.filter(isNull),
+            R.length
+        )(this.list);
+
         if (!this.withDistrict) {
             nbVotes = R.pipe(
                 getVotes,
@@ -57,21 +70,11 @@ class Elections {
                 R.length
             )(this.list);
 
-            nullVotes = R.pipe(getVotes, R.filter(isNull), R.length)(this.list);
-
             const winnerResults = R.pipe(
                 getVotes,
                 R.filter(isOfficialCandidate),
                 R.groupBy(R.identity),
                 R.map(x => numeral(x.length / nbValidVotes).format('0.00%'))
-            )(this.list);
-
-            blankVotes = R.pipe(
-                getVotes,
-                R.reject(isOfficialCandidate),
-                R.reject(R.isEmpty),
-                R.reject(R.equals(null)),
-                R.length
             )(this.list);
 
             Object.assign(
@@ -114,15 +117,6 @@ class Elections {
                 districtResults,
                 candidates
             );
-
-            blankVotes = R.pipe(
-                getVotes,
-                R.reject(isOfficialCandidate),
-                R.reject(R.isEmpty),
-                R.reject(R.equals(null)),
-                R.length
-            )(this.list);
-            nullVotes = R.pipe(getVotes, R.filter(isNull), R.length)(this.list);
 
             const asDistrictedResult = R.divide(
                 R.__,
