@@ -74,12 +74,14 @@ class Elections {
 
         if (!this.withDistrict) {
             nbVotes = R.sum(this.votesWithoutDistricts);
-            for (let i = 0; i < this.officialCandidates.length; i++) {
-                const index = this.candidates.indexOf(
-                    this.officialCandidates[i]
-                );
-                nbValidVotes += this.votesWithoutDistricts[index];
-            }
+
+            nbValidVotes = R.pipe(
+                R.values,
+                R.map(R.values),
+                R.reduce(R.concat, []),
+                R.filter(elm => this.officialCandidates2.has(elm)),
+                R.length
+            )(this.list);
 
             nullVotes = R.pipe(
                 R.values,
