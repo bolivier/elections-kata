@@ -1,3 +1,4 @@
+const { fromPairs } = require('lodash');
 const numeral = require('numeral');
 const R = require('ramda');
 
@@ -78,7 +79,11 @@ class Elections {
         );
         const isOfficialCandidate = candidate =>
             this.officialCandidates2.has(candidate);
-
+        const candidates = R.reduce(
+            (acc, candidate) => ({ ...acc, [candidate]: 0 }),
+            {},
+            this.officialCandidates2
+        );
         if (!this.withDistrict) {
             nbVotes = R.sum(this.votesWithoutDistricts);
 
@@ -90,11 +95,6 @@ class Elections {
 
             nullVotes = R.pipe(getVotes, R.filter(isNull), R.length)(this.list);
 
-            const candidates = R.reduce(
-                (acc, candidate) => ({ ...acc, [candidate]: 0 }),
-                {},
-                this.officialCandidates2
-            );
             const winnerResults = R.pipe(
                 getVotes,
                 R.filter(isOfficialCandidate),
@@ -124,7 +124,7 @@ class Elections {
                 R.length
             )(this.list);
 
-            const officialCandidatesResult = R.reduce(
+            let officialCandidatesResult = R.reduce(
                 (acc, elem) => {
                     acc[elem] = 0;
                     return acc;
@@ -133,15 +133,28 @@ class Elections {
                 this.officialCandidates2
             );
 
+            // this is pretty gnarly
+            const districtResults = R.pipe(
+                R.map(R.values),
+                R.map(R.groupBy(R.identity)),
+                R.map(R.map(R.length)),
+                R.map(R.toPairs),
+                R.map(R.reduce(R.maxBy(R.nth(1)), ['placeholder', 0])),
+                R.map(R.nth(0)),
+                R.invert,
+                R.map(R.length)
+            )(this.list);
+
+            officialCandidatesResult = R.mergeWith(
+                R.add,
+                districtResults,
+                candidates
+            );
+
             for (let districtVotes of Object.values(this.votesWithDistricts)) {
-                const districtResult = [];
                 for (let i = 0; i < districtVotes.length; i++) {
-                    let candidateResult = 0;
-                    if (nbValidVotes != 0)
-                        candidateResult = districtVotes[i] / nbValidVotes;
                     const candidate = this.candidates[i];
                     if (this.officialCandidates2.has(candidate)) {
-                        districtResult.push(candidateResult);
                     } else {
                         if (this.candidates[i].length === 0) {
                             blankVotes += districtVotes[i];
@@ -150,15 +163,8 @@ class Elections {
                         }
                     }
                 }
-                let districtWinnerIndex = 0;
-                for (let i = 1; i < districtResult.length; i++) {
-                    if (districtResult[districtWinnerIndex] < districtResult[i])
-                        districtWinnerIndex = i;
-                }
-                officialCandidatesResult[
-                    this.candidates[districtWinnerIndex]
-                ] += 1;
             }
+
             for (
                 let i = 0;
                 i < Object.values(officialCandidatesResult).length;
