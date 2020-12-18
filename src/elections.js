@@ -104,9 +104,9 @@ class Elections {
 
             blankVotes = R.pipe(
                 getVotes,
-                R.filter(R.compose(R.not, isOfficialCandidate)),
-                R.filter(R.compose(R.not, R.isEmpty)),
-                R.filter(R.compose(R.not, R.equals(null))),
+                R.reject(isOfficialCandidate),
+                R.reject(R.isEmpty),
+                R.reject(R.equals(null)),
                 R.length
             )(this.list);
 
