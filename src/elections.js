@@ -4,13 +4,7 @@ const R = require('ramda');
 class Elections {
     constructor(list, withDistrict) {
         this.officialCandidates2 = new Set([]);
-        this.list = R.map(
-            R.reduce(
-                (electors, elector) => ({ ...electors, [elector]: null }),
-                {}
-            ),
-            list
-        );
+        this.state = generateInitialState(list);
         this.withDistrict = withDistrict;
     }
 
@@ -19,10 +13,10 @@ class Elections {
     }
 
     voteFor(elector, candidate, electorDistrict) {
-        this.list = R.assocPath(
+        this.state = R.assocPath(
             [electorDistrict, elector],
             candidate,
-            this.list
+            this.state
         );
     }
 
@@ -40,17 +34,17 @@ class Elections {
             R.reject(R.isEmpty),
             R.reject(R.equals(null)),
             R.length
-        )(this.list);
+        )(this.state);
 
-        const nullVotes = voteLengthFilteredBy(isNull, this.list);
+        const nullVotes = voteLengthFilteredBy(isNull, this.state);
         const nbVotes = voteLengthFilteredBy(
             R.compose(R.not, R.equals(null)),
-            this.list
+            this.state
         );
 
         const nbValidVotes = voteLengthFilteredBy(
             isOfficialCandidate,
-            this.list
+            this.state
         );
 
         if (!this.withDistrict) {
@@ -59,7 +53,7 @@ class Elections {
                 R.filter(isOfficialCandidate),
                 R.groupBy(R.identity),
                 R.map(x => numeral(x.length / nbValidVotes).format('0.00%'))
-            )(this.list);
+            )(this.state);
 
             Object.assign(
                 results,
@@ -77,7 +71,7 @@ class Elections {
                 R.map(R.nth(0)),
                 R.invert,
                 R.map(R.length)
-            )(this.list);
+            )(this.state);
 
             const officialCandidatesResult = R.mergeWith(
                 R.add,
@@ -109,7 +103,7 @@ class Elections {
             R.map(R.values),
             R.map(R.length),
             R.sum
-        )(this.list);
+        )(this.state);
 
         const abstentionResult = 1 - nbVotes / nbElectors;
         results['Abstention'] = numeral(abstentionResult).format('0.00%');
@@ -126,6 +120,9 @@ const getCandidates = R.reduce(
 );
 const voteLengthFilteredBy = (f, coll) =>
     R.pipe(getVotes, R.filter(f), R.length)(coll);
+const generateInitialState = R.map(
+    R.reduce((electors, elector) => ({ ...electors, [elector]: null }), {})
+);
 
 module.exports = {
     Elections,
