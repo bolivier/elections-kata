@@ -13,11 +13,8 @@ class Elections {
     }
 
     voteFor(elector, candidate, electorDistrict) {
-        this.state = R.assocPath(
-            [electorDistrict, elector],
-            candidate,
-            this.state
-        );
+        const electorLens = R.lensPath([electorDistrict, elector]);
+        this.state = R.set(electorLens, candidate, this.state);
     }
 
     withoutDistrictResults({ isOfficialCandidate, officialVotes }) {
