@@ -71,16 +71,16 @@ class Elections {
         let nullVotes = 0;
         let blankVotes = 0;
         let nbValidVotes = 0;
+        const getVotes = R.pipe(
+            R.values,
+            R.map(R.values),
+            R.reduce(R.concat, [])
+        );
+        const isOfficialCandidate = candidate =>
+            this.officialCandidates2.has(candidate);
 
         if (!this.withDistrict) {
-            const isOfficialCandidate = candidate =>
-                this.officialCandidates2.has(candidate);
             nbVotes = R.sum(this.votesWithoutDistricts);
-            const getVotes = R.pipe(
-                R.values,
-                R.map(R.values),
-                R.reduce(R.concat, [])
-            );
 
             nbValidVotes = R.pipe(
                 getVotes,
@@ -116,9 +116,7 @@ class Elections {
                 winnerResults
             );
         } else {
-            for (let districtVotes of Object.values(this.votesWithDistricts)) {
-                nbVotes += districtVotes.reduce((x, y) => x + y);
-            }
+            nbVotes = R.pipe(getVotes, R.length)(this.list);
 
             for (let i = 0; i < this.officialCandidates.length; i++) {
                 const index = this.candidates.indexOf(
