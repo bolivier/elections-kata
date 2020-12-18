@@ -3,13 +3,13 @@ const R = require('ramda');
 
 class Elections {
     constructor(list, withDistrict) {
-        this.officialCandidates2 = new Set([]);
+        this.officialCandidates = new Set([]);
         this.state = generateInitialState(list);
         this.withDistrict = withDistrict;
     }
 
     addCandidate(candidate) {
-        this.officialCandidates2.add(candidate);
+        this.officialCandidates.add(candidate);
     }
 
     voteFor(elector, candidate, electorDistrict) {
@@ -43,10 +43,10 @@ class Elections {
     }
 
     results() {
-        const candidates = getCandidates(this.officialCandidates2);
+        const candidates = getCandidates(this.officialCandidates);
 
         const isOfficialCandidate = candidate =>
-            this.officialCandidates2.has(candidate);
+            this.officialCandidates.has(candidate);
 
         const unofficialCandidateVotes = R.pipe(
             getVotes,
