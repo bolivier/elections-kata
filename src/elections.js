@@ -1,13 +1,9 @@
-const { fromPairs } = require('lodash');
 const numeral = require('numeral');
 const R = require('ramda');
 
 class Elections {
     constructor(list, withDistrict) {
         this.officialCandidates2 = new Set([]);
-        this.candidates = [];
-        this.officialCandidates = [];
-        this.votesWithoutDistricts = [];
         this.list = R.map(
             R.reduce(
                 (electors, elector) => ({ ...electors, [elector]: null }),
@@ -16,21 +12,10 @@ class Elections {
             list
         );
         this.withDistrict = withDistrict;
-        this.votesWithDistricts = {
-            'District 1': [],
-            'District 2': [],
-            'District 3': [],
-        };
     }
 
     addCandidate(candidate) {
-        this.officialCandidates.push(candidate);
         this.officialCandidates2.add(candidate);
-        this.candidates.push(candidate);
-        this.votesWithoutDistricts.push(0);
-        this.votesWithDistricts['District 1'].push(0);
-        this.votesWithDistricts['District 2'].push(0);
-        this.votesWithDistricts['District 3'].push(0);
     }
 
     voteFor(elector, candidate, electorDistrict) {
