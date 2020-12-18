@@ -7,7 +7,13 @@ class Elections {
         this.candidates = [];
         this.officialCandidates = [];
         this.votesWithoutDistricts = [];
-        this.list = list;
+        this.list = R.map(
+            R.reduce(
+                (electors, elector) => ({ ...electors, [elector]: null }),
+                {}
+            ),
+            list
+        );
         this.withDistrict = withDistrict;
         this.votesWithDistricts = {
             'District 1': [],
@@ -160,7 +166,13 @@ class Elections {
         const nullResult = nullVotes / nbVotes;
         results['Null'] = numeral(nullResult).format('0.00%');
 
-        const nbElectors = R.pipe(R.values, R.map(R.length), R.sum)(this.list);
+        const nbElectors = R.pipe(
+            R.values,
+            R.map(R.values),
+            R.map(R.length),
+            R.sum
+        )(this.list);
+
         const abstentionResult = 1 - nbVotes / nbElectors;
         results['Abstention'] = numeral(abstentionResult).format('0.00%');
 
