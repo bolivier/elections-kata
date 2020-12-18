@@ -39,31 +39,6 @@ class Elections {
             candidate,
             this.list
         );
-        if (!this.withDistrict) {
-            if (this.candidates.includes(candidate)) {
-                const index = this.candidates.indexOf(candidate);
-                this.votesWithoutDistricts[index] += 1;
-            } else {
-                this.candidates.push(candidate);
-                this.votesWithoutDistricts.push(1);
-            }
-        } else {
-            if (electorDistrict in this.votesWithDistricts) {
-                this.districtVotes = this.votesWithDistricts[electorDistrict];
-                if (this.candidates.includes(candidate)) {
-                    const index = this.candidates.indexOf(candidate);
-                    this.districtVotes[index] += 1;
-                } else {
-                    this.candidates.push(candidate);
-                    Object.values(this.votesWithDistricts).forEach(
-                        districtVotes => {
-                            districtVotes.push(0);
-                        }
-                    );
-                    this.districtVotes[this.candidates.length - 1] += 1;
-                }
-            }
-        }
     }
 
     results() {
