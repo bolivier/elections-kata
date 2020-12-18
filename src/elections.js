@@ -73,6 +73,8 @@ class Elections {
         let nbValidVotes = 0;
 
         if (!this.withDistrict) {
+            const isOfficialCandidate = candidate =>
+                this.officialCandidates2.has(candidate);
             nbVotes = R.sum(this.votesWithoutDistricts);
             const getVotes = R.pipe(
                 R.values,
@@ -82,7 +84,7 @@ class Elections {
 
             nbValidVotes = R.pipe(
                 getVotes,
-                R.filter(elm => this.officialCandidates2.has(elm)),
+                R.filter(isOfficialCandidate),
                 R.length
             )(this.list);
 
@@ -95,14 +97,14 @@ class Elections {
             );
             const winnerResults = R.pipe(
                 getVotes,
-                R.filter(elm => this.officialCandidates2.has(elm)),
+                R.filter(isOfficialCandidate),
                 R.groupBy(R.identity),
                 R.map(x => numeral(x.length / nbValidVotes).format('0.00%'))
             )(this.list);
 
             blankVotes = R.pipe(
                 getVotes,
-                R.filter(elm => !this.officialCandidates2.has(elm)),
+                R.filter(R.compose(R.not, isOfficialCandidate)),
                 R.filter(R.compose(R.not, R.isEmpty)),
                 R.filter(R.compose(R.not, R.equals(null))),
                 R.length
