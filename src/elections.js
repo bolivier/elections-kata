@@ -28,9 +28,7 @@ class Elections {
 
     results() {
         let results = {};
-        let nbVotes = 0;
 
-        let nbValidVotes = 0;
         const getVotes = R.pipe(
             R.values,
             R.map(R.values),
@@ -56,20 +54,18 @@ class Elections {
             R.filter(isNull),
             R.length
         )(this.list);
+        const nbVotes = R.pipe(
+            getVotes,
+            R.reject(R.equals(null)),
+            R.length
+        )(this.list);
+        const nbValidVotes = R.pipe(
+            getVotes,
+            R.filter(isOfficialCandidate),
+            R.length
+        )(this.list);
 
         if (!this.withDistrict) {
-            nbVotes = R.pipe(
-                getVotes,
-                R.reject(R.equals(null)),
-                R.length
-            )(this.list);
-
-            nbValidVotes = R.pipe(
-                getVotes,
-                R.filter(isOfficialCandidate),
-                R.length
-            )(this.list);
-
             const winnerResults = R.pipe(
                 getVotes,
                 R.filter(isOfficialCandidate),
@@ -83,14 +79,6 @@ class Elections {
                 winnerResults
             );
         } else {
-            nbVotes = R.pipe(getVotes, R.length)(this.list);
-
-            nbValidVotes = R.pipe(
-                getVotes,
-                R.filter(isOfficialCandidate),
-                R.length
-            )(this.list);
-
             let officialCandidatesResult = R.reduce(
                 (acc, elem) => {
                     acc[elem] = 0;
