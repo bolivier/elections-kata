@@ -20,15 +20,38 @@ class Elections {
         );
     }
 
+    withoutDistrictResults({ isOfficialCandidate, officialVotes }) {
+        return R.pipe(
+            getVotes,
+            R.filter(isOfficialCandidate),
+            R.groupBy(R.identity),
+            R.map(x => x.length / officialVotes)
+        )(this.state);
+    }
+
+    districtedResults() {
+        const districtResults = R.pipe(
+            districtVoteCounts,
+            districtWinner,
+            R.invert,
+            R.map(R.length)
+        )(this.state);
+
+        const asDistrictedResult = R.divide(
+            R.__,
+            R.pipe(R.values, R.sum)(districtResults)
+        );
+
+        return R.pipe(R.map(asDistrictedResult))(districtResults);
+    }
+
     results() {
         const candidates = getCandidates(this.officialCandidates2);
-
-        let results = candidates;
 
         const isOfficialCandidate = candidate =>
             this.officialCandidates2.has(candidate);
 
-        const blankVotes = R.pipe(
+        const unofficialCandidateVotes = R.pipe(
             getVotes,
             R.reject(isOfficialCandidate),
             R.reject(R.isEmpty),
@@ -37,67 +60,43 @@ class Elections {
         )(this.state);
 
         const nullVotes = voteLengthFilteredBy(isNull, this.state);
-        const nbVotes = voteLengthFilteredBy(
+        const totalVotes = voteLengthFilteredBy(
             R.compose(R.not, R.equals(null)),
             this.state
         );
 
-        const nbValidVotes = voteLengthFilteredBy(
+        const officialVotes = voteLengthFilteredBy(
             isOfficialCandidate,
             this.state
         );
 
+        const blankResults = {
+            Blank: unofficialCandidateVotes / totalVotes,
+            Null: nullVotes / totalVotes,
+            Abstention: 1 - totalVotes / countElectors(this.state),
+        };
+
+        let results = {};
         if (!this.withDistrict) {
-            const winnerResults = R.pipe(
-                getVotes,
-                R.filter(isOfficialCandidate),
-                R.groupBy(R.identity),
-                R.map(x => x.length / nbValidVotes)
-            )(this.state);
+            const winnerResults = this.withoutDistrictResults({
+                isOfficialCandidate,
+                officialVotes,
+            });
 
             Object.assign(results, winnerResults);
         } else {
-            // this is pretty gnarly
-            const districtResults = R.pipe(
-                R.map(R.values),
-                R.map(R.groupBy(R.identity)),
-                R.map(R.map(R.length)),
-                R.map(R.toPairs),
-                R.map(R.reduce(R.maxBy(R.nth(1)), ['placeholder', 0])),
-                R.map(R.nth(0)),
-                R.invert,
-                R.map(R.length)
-            )(this.state);
-
-            const asDistrictedResult = R.divide(
-                R.__,
-                R.pipe(R.values, R.sum)(districtResults)
-            );
-
-            const districtedResults = R.pipe(R.map(asDistrictedResult))(
-                districtResults
-            );
-
+            const districtedResults = this.districtedResults();
             Object.assign(results, districtedResults);
         }
 
-        const blankResult = blankVotes / nbVotes;
-        results.Blank = blankResult;
-
-        const nullResult = nullVotes / nbVotes;
-        results['Null'] = nullResult;
-
-        const nbElectors = R.pipe(
-            R.values,
-            R.map(R.values),
-            R.map(R.length),
-            R.sum
-        )(this.state);
-
-        const abstentionResult = 1 - nbVotes / nbElectors;
-        results['Abstention'] = abstentionResult;
-
-        return R.map(format, results);
+        return R.map(
+            format,
+            R.reduce(R.mergeWith(R.add), {}, [
+                results,
+                blankResults,
+                candidates,
+            ])
+        );
     }
 }
 
@@ -113,6 +112,18 @@ const generateInitialState = R.map(
     R.reduce((electors, elector) => ({ ...electors, [elector]: null }), {})
 );
 const format = n => numeral(n).format('0.00%');
+const countElectors = R.pipe(R.values, R.map(R.values), R.map(R.length), R.sum);
+const districtVoteCounts = R.pipe(
+    R.map(R.values),
+    R.map(R.groupBy(R.identity)),
+    R.map(R.map(R.length))
+);
+
+const districtWinner = R.pipe(
+    R.map(R.toPairs),
+    R.map(R.reduce(R.maxBy(R.nth(1)), ['', 0])),
+    R.map(R.nth(0))
+);
 
 module.exports = {
     Elections,
