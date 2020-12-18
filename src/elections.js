@@ -21,12 +21,12 @@ class Elections {
     }
 
     results() {
-        let results = {};
+        const candidates = getCandidates(this.officialCandidates2);
+
+        let results = candidates;
 
         const isOfficialCandidate = candidate =>
             this.officialCandidates2.has(candidate);
-
-        const candidates = getCandidates(this.officialCandidates2);
 
         const blankVotes = R.pipe(
             getVotes,
@@ -52,14 +52,10 @@ class Elections {
                 getVotes,
                 R.filter(isOfficialCandidate),
                 R.groupBy(R.identity),
-                R.map(x => numeral(x.length / nbValidVotes).format('0.00%'))
+                R.map(x => x.length / nbValidVotes)
             )(this.state);
 
-            Object.assign(
-                results,
-                R.map(() => '0.00%', candidates),
-                winnerResults
-            );
+            Object.assign(results, winnerResults);
         } else {
             // this is pretty gnarly
             const districtResults = R.pipe(
@@ -73,30 +69,23 @@ class Elections {
                 R.map(R.length)
             )(this.state);
 
-            const officialCandidatesResult = R.mergeWith(
-                R.add,
-                districtResults,
-                candidates
-            );
-
             const asDistrictedResult = R.divide(
                 R.__,
-                R.length(R.keys(officialCandidatesResult))
+                R.pipe(R.values, R.sum)(districtResults)
             );
 
-            const districtedResults = R.pipe(
-                R.map(asDistrictedResult),
-                R.map(ratioCandidate => numeral(ratioCandidate).format('0.00%'))
-            )(officialCandidatesResult);
+            const districtedResults = R.pipe(R.map(asDistrictedResult))(
+                districtResults
+            );
 
-            results = R.merge(results, districtedResults);
+            Object.assign(results, districtedResults);
         }
 
         const blankResult = blankVotes / nbVotes;
-        results.Blank = numeral(blankResult).format('0.00%');
+        results.Blank = blankResult;
 
         const nullResult = nullVotes / nbVotes;
-        results['Null'] = numeral(nullResult).format('0.00%');
+        results['Null'] = nullResult;
 
         const nbElectors = R.pipe(
             R.values,
@@ -106,9 +95,9 @@ class Elections {
         )(this.state);
 
         const abstentionResult = 1 - nbVotes / nbElectors;
-        results['Abstention'] = numeral(abstentionResult).format('0.00%');
+        results['Abstention'] = abstentionResult;
 
-        return results;
+        return R.map(format, results);
     }
 }
 
@@ -123,6 +112,7 @@ const voteLengthFilteredBy = (f, coll) =>
 const generateInitialState = R.map(
     R.reduce((electors, elector) => ({ ...electors, [elector]: null }), {})
 );
+const format = n => numeral(n).format('0.00%');
 
 module.exports = {
     Elections,
