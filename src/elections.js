@@ -26,7 +26,27 @@ class Elections {
         }
     }
 
-    withoutDistrictResults({ isOfficialCandidate, officialVotes }) {
+    results() {
+        const emptyCandidateResults = getCandidates(this.officialCandidates);
+        const blankResults = this.blankResults();
+        const candidateResults = this.withDistrict
+            ? this.withDistrictResults()
+            : this.withoutDistrictResults();
+
+        const results = [candidateResults, blankResults, emptyCandidateResults];
+        return R.pipe(R.reduce(R.mergeWith(R.add)), R.map(format))(results);
+    }
+
+    // implementations
+
+    withoutDistrictResults() {
+        const isOfficialCandidate = candidate =>
+            this.officialCandidates.has(candidate);
+
+        const officialVotes = voteLengthFilteredBy(
+            isOfficialCandidate,
+            this.state
+        );
         return R.pipe(
             getVotes,
             R.filter(isOfficialCandidate),
@@ -48,12 +68,9 @@ class Elections {
         return R.map(asDistrictedResult, districtResults);
     }
 
-    results() {
-        const candidates = getCandidates(this.officialCandidates);
-
+    blankResults() {
         const isOfficialCandidate = candidate =>
             this.officialCandidates.has(candidate);
-
         const unofficialCandidateVotes = R.pipe(
             getVotes,
             R.reject(isOfficialCandidate),
@@ -67,13 +84,7 @@ class Elections {
             R.compose(R.not, R.equals(null)),
             this.state
         );
-
-        const officialVotes = voteLengthFilteredBy(
-            isOfficialCandidate,
-            this.state
-        );
-
-        const blankResults = {
+        return {
             Blank: unofficialCandidateVotes / totalVotes,
             Null: nullVotes / totalVotes,
             Abstention:
@@ -81,22 +92,6 @@ class Elections {
                 (totalVotes - this.overVoters) /
                     (countElectors(this.state) - this.overVoters),
         };
-
-        const results = this.withDistrict
-            ? this.withDistrictResults()
-            : this.withoutDistrictResults({
-                  isOfficialCandidate,
-                  officialVotes,
-              });
-
-        return R.map(
-            format,
-            R.reduce(R.mergeWith(R.add), {}, [
-                results,
-                blankResults,
-                candidates,
-            ])
-        );
     }
 }
 
