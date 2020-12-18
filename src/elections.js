@@ -74,22 +74,19 @@ class Elections {
 
         if (!this.withDistrict) {
             nbVotes = R.sum(this.votesWithoutDistricts);
-
-            nbValidVotes = R.pipe(
+            const getVotes = R.pipe(
                 R.values,
                 R.map(R.values),
-                R.reduce(R.concat, []),
+                R.reduce(R.concat, [])
+            );
+
+            nbValidVotes = R.pipe(
+                getVotes,
                 R.filter(elm => this.officialCandidates2.has(elm)),
                 R.length
             )(this.list);
 
-            nullVotes = R.pipe(
-                R.values,
-                R.map(R.values),
-                R.reduce(R.concat, []),
-                R.filter(isNull),
-                R.length
-            )(this.list);
+            nullVotes = R.pipe(getVotes, R.filter(isNull), R.length)(this.list);
 
             const candidates = R.reduce(
                 (acc, candidate) => ({ ...acc, [candidate]: 0 }),
@@ -97,12 +94,18 @@ class Elections {
                 this.officialCandidates2
             );
             const winnerResults = R.pipe(
-                R.values,
-                R.map(R.values),
-                R.reduce(R.concat, []),
+                getVotes,
                 R.filter(elm => this.officialCandidates2.has(elm)),
                 R.groupBy(R.identity),
                 R.map(x => numeral(x.length / nbValidVotes).format('0.00%'))
+            )(this.list);
+
+            blankVotes = R.pipe(
+                getVotes,
+                R.filter(elm => !this.officialCandidates2.has(elm)),
+                R.filter(R.compose(R.not, R.isEmpty)),
+                R.filter(R.compose(R.not, R.equals(null))),
+                R.length
             )(this.list);
 
             Object.assign(
@@ -110,15 +113,6 @@ class Elections {
                 R.map(() => '0.00%', candidates),
                 winnerResults
             );
-
-            for (let i = 0; i < this.votesWithoutDistricts.length; i++) {
-                const candidate = this.candidates[i];
-                if (!this.officialCandidates2.has(candidate)) {
-                    if (this.candidates[i].length === 0) {
-                        blankVotes += this.votesWithoutDistricts[i];
-                    }
-                }
-            }
         } else {
             for (let districtVotes of Object.values(this.votesWithDistricts)) {
                 nbVotes += districtVotes.reduce((x, y) => x + y);
