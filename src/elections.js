@@ -160,9 +160,7 @@ class Elections {
         const nullResult = nullVotes / nbVotes;
         results['Null'] = numeral(nullResult).format('0.00%');
 
-        const nbElectors = Object.values(this.list)
-            .map(x => x.length)
-            .reduce((x, y) => x + y);
+        const nbElectors = R.pipe(R.values, R.map(R.length), R.sum)(this.list);
         const abstentionResult = 1 - nbVotes / nbElectors;
         results['Abstention'] = numeral(abstentionResult).format('0.00%');
 
