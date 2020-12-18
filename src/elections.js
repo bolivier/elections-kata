@@ -33,8 +33,12 @@ class Elections {
             ? this.withDistrictResults()
             : this.withoutDistrictResults();
 
-        const results = [candidateResults, blankResults, emptyCandidateResults];
-        return R.pipe(R.reduce(R.mergeWith(R.add)), R.map(format))(results);
+        const results = R.reduce(R.mergeWith(R.add), {}, [
+            candidateResults,
+            blankResults,
+            emptyCandidateResults,
+        ]);
+        return R.map(format, results);
     }
 
     // implementations
