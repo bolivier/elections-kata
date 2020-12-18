@@ -70,7 +70,7 @@ test('electors cannot vote twice', t => {
     t.deepEqual(expectedResults, results);
 });
 
-test.skip('electors cannot vote in not their district', t => {
+test('electors cannot vote in not their district', t => {
     const list = {
         'District 1': ['Bob', 'Anna', 'Jess', 'July'],
         'District 2': ['Jerry', 'Simon'],
@@ -82,7 +82,7 @@ test.skip('electors cannot vote in not their district', t => {
     elections.addCandidate('Jerry');
     elections.addCandidate('Johnny');
 
-    elections.voteFor('Bob', 'Jerry', 'District 1');
+    elections.voteFor('Anna', 'Jerry', 'District 1');
     elections.voteFor('Bob', 'Jerry', 'District 2');
     elections.voteFor('Carole', 'Michel', 'District 3');
 
@@ -92,8 +92,8 @@ test.skip('electors cannot vote in not their district', t => {
         Johnny: '0.00%',
         Michel: '50.00%',
         Blank: '0.00%',
-        Null: '25.00%',
-        Abstention: '77.77%',
+        Null: '33.33%',
+        Abstention: '77.78%',
     };
 
     t.deepEqual(expectedResults, results);

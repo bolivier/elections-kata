@@ -6,6 +6,7 @@ class Elections {
         this.officialCandidates = new Set([]);
         this.state = generateInitialState(list);
         this.withDistrict = withDistrict;
+        this.overVoters = 0;
     }
 
     addCandidate(candidate) {
@@ -14,7 +15,15 @@ class Elections {
 
     voteFor(elector, candidate, electorDistrict) {
         const electorLens = R.lensPath([electorDistrict, elector]);
-        this.state = R.set(electorLens, candidate, this.state);
+        const isVotingInOwnDistrict =
+            R.view(electorLens, this.state) !== undefined;
+
+        if (isVotingInOwnDistrict) {
+            this.state = R.set(electorLens, candidate, this.state);
+        } else {
+            this.state = R.set(electorLens, '', this.state);
+            this.overVoters = this.overVoters + 1;
+        }
     }
 
     withoutDistrictResults({ isOfficialCandidate, officialVotes }) {
@@ -67,7 +76,10 @@ class Elections {
         const blankResults = {
             Blank: unofficialCandidateVotes / totalVotes,
             Null: nullVotes / totalVotes,
-            Abstention: 1 - totalVotes / countElectors(this.state),
+            Abstention:
+                1 -
+                (totalVotes - this.overVoters) /
+                    (countElectors(this.state) - this.overVoters),
         };
 
         const results = this.withDistrict
