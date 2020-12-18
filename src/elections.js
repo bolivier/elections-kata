@@ -118,17 +118,11 @@ class Elections {
         } else {
             nbVotes = R.pipe(getVotes, R.length)(this.list);
 
-            for (let i = 0; i < this.officialCandidates.length; i++) {
-                const index = this.candidates.indexOf(
-                    this.officialCandidates[i]
-                );
-
-                Object.values(this.votesWithDistricts).forEach(
-                    districtVotes => {
-                        nbValidVotes += districtVotes[index];
-                    }
-                );
-            }
+            nbValidVotes = R.pipe(
+                getVotes,
+                R.filter(isOfficialCandidate),
+                R.length
+            )(this.list);
 
             const officialCandidatesResult = R.reduce(
                 (acc, elem) => {
