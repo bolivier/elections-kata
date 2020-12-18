@@ -160,18 +160,17 @@ class Elections {
             )(this.list);
             nullVotes = R.pipe(getVotes, R.filter(isNull), R.length)(this.list);
 
-            for (
-                let i = 0;
-                i < Object.values(officialCandidatesResult).length;
-                i++
-            ) {
-                let ratioCandidate =
-                    officialCandidatesResult[this.candidates[i]] /
-                    Object.values(officialCandidatesResult).length;
-                results[this.candidates[i]] = numeral(ratioCandidate).format(
-                    '0.00%'
-                );
-            }
+            const asDistrictedResult = R.divide(
+                R.__,
+                R.length(R.keys(officialCandidatesResult))
+            );
+
+            const districtedResults = R.pipe(
+                R.map(asDistrictedResult),
+                R.map(ratioCandidate => numeral(ratioCandidate).format('0.00%'))
+            )(officialCandidatesResult);
+
+            results = R.merge(results, districtedResults);
         }
 
         const blankResult = blankVotes / nbVotes;
