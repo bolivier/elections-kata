@@ -29,7 +29,7 @@ class Elections {
         )(this.state);
     }
 
-    districtedResults() {
+    withDistrictResults() {
         const districtResults = R.pipe(
             districtVoteCounts,
             districtWinner,
@@ -37,12 +37,9 @@ class Elections {
             R.map(R.length)
         )(this.state);
 
-        const asDistrictedResult = R.divide(
-            R.__,
-            R.pipe(R.values, R.sum)(districtResults)
-        );
-
-        return R.pipe(R.map(asDistrictedResult))(districtResults);
+        const totalVotes = R.sum(R.values(districtResults));
+        const asDistrictedResult = R.divide(R.__, totalVotes);
+        return R.map(asDistrictedResult, districtResults);
     }
 
     results() {
@@ -76,18 +73,12 @@ class Elections {
             Abstention: 1 - totalVotes / countElectors(this.state),
         };
 
-        let results = {};
-        if (!this.withDistrict) {
-            const winnerResults = this.withoutDistrictResults({
-                isOfficialCandidate,
-                officialVotes,
-            });
-
-            Object.assign(results, winnerResults);
-        } else {
-            const districtedResults = this.districtedResults();
-            Object.assign(results, districtedResults);
-        }
+        const results = this.withDistrict
+            ? this.withDistrictResults()
+            : this.withoutDistrictResults({
+                  isOfficialCandidate,
+                  officialVotes,
+              });
 
         return R.map(
             format,
