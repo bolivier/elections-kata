@@ -41,22 +41,17 @@ class Elections {
             R.reject(R.equals(null)),
             R.length
         )(this.list);
-        const nullVotes = R.pipe(
-            getVotes,
-            R.filter(isNull),
-            R.length
-        )(this.list);
-        const nbVotes = R.pipe(
-            getVotes,
-            R.reject(R.equals(null)),
-            R.length
-        )(this.list);
 
-        const nbValidVotes = R.pipe(
-            getVotes,
-            R.filter(isOfficialCandidate),
-            R.length
-        )(this.list);
+        const nullVotes = voteLengthFilteredBy(isNull, this.list);
+        const nbVotes = voteLengthFilteredBy(
+            R.compose(R.not, R.equals(null)),
+            this.list
+        );
+
+        const nbValidVotes = voteLengthFilteredBy(
+            isOfficialCandidate,
+            this.list
+        );
 
         if (!this.withDistrict) {
             const winnerResults = R.pipe(
@@ -72,15 +67,6 @@ class Elections {
                 winnerResults
             );
         } else {
-            let officialCandidatesResult = R.reduce(
-                (acc, elem) => {
-                    acc[elem] = 0;
-                    return acc;
-                },
-                {},
-                this.officialCandidates2
-            );
-
             // this is pretty gnarly
             const districtResults = R.pipe(
                 R.map(R.values),
@@ -93,7 +79,7 @@ class Elections {
                 R.map(R.length)
             )(this.list);
 
-            officialCandidatesResult = R.mergeWith(
+            const officialCandidatesResult = R.mergeWith(
                 R.add,
                 districtResults,
                 candidates
@@ -138,7 +124,8 @@ const getCandidates = R.reduce(
     (acc, candidate) => ({ ...acc, [candidate]: 0 }),
     {}
 );
-const voteLengthFilteredBy = R.pipe(getVotes, R.filter(R.__), R.length);
+const voteLengthFilteredBy = (f, coll) =>
+    R.pipe(getVotes, R.filter(f), R.length)(coll);
 
 module.exports = {
     Elections,
