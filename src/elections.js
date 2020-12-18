@@ -151,19 +151,14 @@ class Elections {
                 candidates
             );
 
-            for (let districtVotes of Object.values(this.votesWithDistricts)) {
-                for (let i = 0; i < districtVotes.length; i++) {
-                    const candidate = this.candidates[i];
-                    if (this.officialCandidates2.has(candidate)) {
-                    } else {
-                        if (this.candidates[i].length === 0) {
-                            blankVotes += districtVotes[i];
-                        } else {
-                            nullVotes += districtVotes[i];
-                        }
-                    }
-                }
-            }
+            blankVotes = R.pipe(
+                getVotes,
+                R.reject(isOfficialCandidate),
+                R.reject(R.isEmpty),
+                R.reject(R.equals(null)),
+                R.length
+            )(this.list);
+            nullVotes = R.pipe(getVotes, R.filter(isNull), R.length)(this.list);
 
             for (
                 let i = 0;
