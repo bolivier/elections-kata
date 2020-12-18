@@ -29,18 +29,10 @@ class Elections {
     results() {
         let results = {};
 
-        const getVotes = R.pipe(
-            R.values,
-            R.map(R.values),
-            R.reduce(R.concat, [])
-        );
         const isOfficialCandidate = candidate =>
             this.officialCandidates2.has(candidate);
-        const candidates = R.reduce(
-            (acc, candidate) => ({ ...acc, [candidate]: 0 }),
-            {},
-            this.officialCandidates2
-        );
+
+        const candidates = getCandidates(this.officialCandidates2);
 
         const blankVotes = R.pipe(
             getVotes,
@@ -59,6 +51,7 @@ class Elections {
             R.reject(R.equals(null)),
             R.length
         )(this.list);
+
         const nbValidVotes = R.pipe(
             getVotes,
             R.filter(isOfficialCandidate),
@@ -140,6 +133,12 @@ class Elections {
 }
 
 const isNull = vote => vote === '';
+const getVotes = R.pipe(R.values, R.map(R.values), R.reduce(R.concat, []));
+const getCandidates = R.reduce(
+    (acc, candidate) => ({ ...acc, [candidate]: 0 }),
+    {}
+);
+const voteLengthFilteredBy = R.pipe(getVotes, R.filter(R.__), R.length);
 
 module.exports = {
     Elections,
