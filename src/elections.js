@@ -33,6 +33,11 @@ class Elections {
     }
 
     voteFor(elector, candidate, electorDistrict) {
+        this.list = R.assocPath(
+            [electorDistrict, elector],
+            candidate,
+            this.list
+        );
         if (!this.withDistrict) {
             if (this.candidates.includes(candidate)) {
                 const index = this.candidates.indexOf(candidate);
@@ -68,15 +73,21 @@ class Elections {
         let nbValidVotes = 0;
 
         if (!this.withDistrict) {
-            nbVotes = this.votesWithoutDistricts.reduce(
-                (acc, elm) => acc + elm
-            );
+            nbVotes = R.sum(this.votesWithoutDistricts);
             for (let i = 0; i < this.officialCandidates.length; i++) {
                 const index = this.candidates.indexOf(
                     this.officialCandidates[i]
                 );
                 nbValidVotes += this.votesWithoutDistricts[index];
             }
+
+            nullVotes = R.pipe(
+                R.values,
+                R.map(R.values),
+                R.reduce(R.concat, []),
+                R.filter(isNull),
+                R.length
+            )(this.list);
 
             for (let i = 0; i < this.votesWithoutDistricts.length; i++) {
                 const candidateResult =
@@ -89,8 +100,6 @@ class Elections {
                 } else {
                     if (this.candidates[i].length === 0) {
                         blankVotes += this.votesWithoutDistricts[i];
-                    } else {
-                        nullVotes += this.votesWithoutDistricts[i];
                     }
                 }
             }
@@ -179,6 +188,8 @@ class Elections {
         return results;
     }
 }
+
+const isNull = vote => vote === '';
 
 module.exports = {
     Elections,
