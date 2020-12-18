@@ -1,7 +1,9 @@
 const numeral = require('numeral');
+const R = require('ramda');
 
 class Elections {
     constructor(list, withDistrict) {
+        this.officialCandidates2 = new Set([]);
         this.candidates = [];
         this.officialCandidates = [];
         this.votesWithoutDistricts = [];
@@ -16,6 +18,7 @@ class Elections {
 
     addCandidate(candidate) {
         this.officialCandidates.push(candidate);
+        this.officialCandidates2.add(candidate);
         this.candidates.push(candidate);
         this.votesWithoutDistricts.push(0);
         this.votesWithDistricts['District 1'].push(0);
@@ -73,7 +76,7 @@ class Elections {
                 const candidateResult =
                     this.votesWithoutDistricts[i] / nbValidVotes;
                 const candidate = this.candidates[i];
-                if (this.officialCandidates.includes(candidate)) {
+                if (this.officialCandidates2.has(candidate)) {
                     results[candidate] = numeral(candidateResult).format(
                         '0.00%'
                     );
@@ -102,11 +105,15 @@ class Elections {
                 );
             }
 
-            const officialCandidatesResult = {};
+            const officialCandidatesResult = R.reduce(
+                (acc, elem) => {
+                    acc[elem] = 0;
+                    return acc;
+                },
+                {},
+                this.officialCandidates2
+            );
 
-            for (let i = 0; i < this.officialCandidates.length; i++) {
-                officialCandidatesResult[this.candidates[i]] = 0;
-            }
             for (let districtVotes of Object.values(this.votesWithDistricts)) {
                 const districtResult = [];
                 for (let i = 0; i < districtVotes.length; i++) {
@@ -114,7 +121,7 @@ class Elections {
                     if (nbValidVotes != 0)
                         candidateResult = districtVotes[i] / nbValidVotes;
                     const candidate = this.candidates[i];
-                    if (this.officialCandidates.includes(candidate)) {
+                    if (this.officialCandidates2.has(candidate)) {
                         districtResult.push(candidateResult);
                     } else {
                         if (this.candidates[i].length === 0) {
