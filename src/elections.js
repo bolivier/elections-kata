@@ -91,15 +91,29 @@ class Elections {
                 R.length
             )(this.list);
 
+            const candidates = R.reduce(
+                (acc, candidate) => ({ ...acc, [candidate]: 0 }),
+                {},
+                this.officialCandidates2
+            );
+            const winnerResults = R.pipe(
+                R.values,
+                R.map(R.values),
+                R.reduce(R.concat, []),
+                R.filter(elm => this.officialCandidates2.has(elm)),
+                R.groupBy(R.identity),
+                R.map(x => numeral(x.length / nbValidVotes).format('0.00%'))
+            )(this.list);
+
+            Object.assign(
+                results,
+                R.map(() => '0.00%', candidates),
+                winnerResults
+            );
+
             for (let i = 0; i < this.votesWithoutDistricts.length; i++) {
-                const candidateResult =
-                    this.votesWithoutDistricts[i] / nbValidVotes;
                 const candidate = this.candidates[i];
-                if (this.officialCandidates2.has(candidate)) {
-                    results[candidate] = numeral(candidateResult).format(
-                        '0.00%'
-                    );
-                } else {
+                if (!this.officialCandidates2.has(candidate)) {
                     if (this.candidates[i].length === 0) {
                         blankVotes += this.votesWithoutDistricts[i];
                     }
